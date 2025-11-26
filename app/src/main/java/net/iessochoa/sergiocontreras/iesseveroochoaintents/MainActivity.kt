@@ -1,8 +1,10 @@
 package net.iessochoa.sergiocontreras.iesseveroochoaintents
 
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -67,6 +69,7 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IESSeveroOchoaIntents() {
+
     val context = LocalContext.current
 
     // Launcher especial para la cámara en Compose
@@ -98,7 +101,6 @@ fun IESSeveroOchoaIntents() {
     // 2. Codifica los componentes para que sean seguros en un URI.
     val encodedSubject = URLEncoder.encode(subject, "UTF-8")
     val encodedBody = URLEncoder.encode(body, "UTF-8")
-
 
 
     Scaffold(
@@ -203,11 +205,28 @@ fun IESSeveroOchoaIntents() {
                 icon = Icons.Filled.Whatsapp,
                 color = buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer)
             ) {
+                sendWhatsAppMessage(context, "Me gustaría matricularme en vuestros ciclos")
 
 
             }
 
         }
+    }
+}
+
+fun sendWhatsAppMessage(context: Context, message: String) {
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        setPackage("com.whatsapp") // Forzamos WhatsApp normal
+        putExtra(Intent.EXTRA_TEXT, message)
+    }
+
+    try {
+        context.startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        // Aquí capturamos si NO tiene WhatsApp instalado
+        // Opcional: Podrías intentar con WhatsApp Business aquí si falla el normal
+        Toast.makeText(context, "WhatsApp no está instalado", Toast.LENGTH_SHORT).show()
     }
 }
 
