@@ -38,12 +38,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.iessochoa.sergiocontreras.iesseveroochoaintents.ui.theme.IESSeveroOchoaIntentsTheme
+import java.net.URLEncoder
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,6 +76,29 @@ fun IESSeveroOchoaIntents() {
         // Aquí recibirías la foto (bitmap) si quisieras mostrarla
         // Por ahora no hacemos nada, solo cumplimos el objetivo de abrirla
     }
+
+    val uriHandler = LocalUriHandler.current
+    val url = "https://portal.edu.gva.es/03013224/"
+    val phoneNumber = "+34966912260"
+    val address = "IES Severo Ochoa, Elche"
+
+    val latitude = "38.27532"
+    val longitude = "-0.68652"
+
+    // 2. Opcional: Añade una etiqueta al marcador usando el parámetro 'q'.
+    // El formato es geo:lat,lng?q=Mi Etiqueta
+    val label = "IES Severo Ochoa"
+    val geoUriWithLabel = "geo:$latitude,$longitude?q=$label"
+
+    val recipient = "info@iesseveroochoa.edu.es"
+    val subject = "Consulta desde la App"
+    val body = "Hola, me gustaría recibir información sobre..."
+
+    // 2. Codifica los componentes para que sean seguros en un URI.
+    val encodedSubject = URLEncoder.encode(subject, "UTF-8")
+    val encodedBody = URLEncoder.encode(body, "UTF-8")
+
+
 
     Scaffold(
         topBar = {
@@ -116,10 +141,7 @@ fun IESSeveroOchoaIntents() {
                 icon = Icons.Filled.Language,
                 color = buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-
-
-
-
+                uriHandler.openUri(url)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -130,9 +152,7 @@ fun IESSeveroOchoaIntents() {
                 icon = Icons.Filled.Phone,
                 color = buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
             ) {
-
-
-
+                uriHandler.openUri("tel:$phoneNumber")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -143,9 +163,10 @@ fun IESSeveroOchoaIntents() {
                 icon = Icons.Filled.Map,
                 color = buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
             )   {
-
-
-
+                    val encodedAddress = URLEncoder.encode(address, "UTF-8")
+                    val geoUri = "geo:0,0?q=$encodedAddress"
+                    uriHandler.openUri(geoUri)
+                    //uriHandler.openUri(geoUriWithLabel)
                 }
 
 
@@ -157,9 +178,8 @@ fun IESSeveroOchoaIntents() {
                 icon = Icons.Filled.Email,
                 color = buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
-
-
-
+                val mailtoUri = "mailto:$recipient?subject=$encodedSubject&body=$encodedBody"
+                uriHandler.openUri(mailtoUri)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
