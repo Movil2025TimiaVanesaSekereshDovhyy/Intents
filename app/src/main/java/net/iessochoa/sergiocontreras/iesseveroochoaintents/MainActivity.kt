@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Whatsapp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults.buttonColors
@@ -193,7 +194,20 @@ fun IESSeveroOchoaIntents() {
 
 
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 6. MANDAR WHATSAPP
+            ActionButton(
+                text = "Mandar Whastapp",
+                icon = Icons.Filled.Whatsapp,
+                color = buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer)
+            ) {
+
+
             }
+
+        }
     }
 }
 
