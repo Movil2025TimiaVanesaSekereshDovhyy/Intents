@@ -1,17 +1,9 @@
 package net.iessochoa.sergiocontreras.iesseveroochoaintents
 
-import android.Manifest
-import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Phone
@@ -51,13 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
 import net.iessochoa.sergiocontreras.iesseveroochoaintents.ui.theme.IESSeveroOchoaIntentsTheme
-import java.net.URLEncoder
-import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,22 +89,7 @@ fun IESSeveroOchoaIntents() {
     // Debe usar ActivityResultContracts.RequestMultiplePermissions()
     // Si se conceden los permisos -> llamar a calculateAndShowDistance()
     // Si se deniegan -> mostrar un Toast informativo
-    // Preparamos el escuchador de permisos
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        // Este código se ejecuta CUANDO el usuario responde al diálogo
-        val isGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
 
-        if (isGranted) {
-            Toast.makeText(context, "Permiso concedido. Calculando...", Toast.LENGTH_SHORT).show()
-            // ¡Llamamos a la función que calcula!
-            calculateAndShowDistance(context, latitude, longitude)
-        } else {
-            Toast.makeText(context, "Se necesita permiso para calcular la distancia", Toast.LENGTH_LONG).show()
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -163,7 +133,6 @@ fun IESSeveroOchoaIntents() {
                 color = buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 // TODO: Paso 1. Abrir la URL del instituto usando uriHandler
-                uriHandler.openUri(webUrl)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -176,8 +145,6 @@ fun IESSeveroOchoaIntents() {
             ) {
                 // TODO: Paso 2. Abrir el marcador telefónico.
                 // Recuerda el esquema "tel:"
-                // El formato debe ser "tel:+3496..."
-                uriHandler.openUri("tel:$phoneNumber")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -191,15 +158,7 @@ fun IESSeveroOchoaIntents() {
                 // TODO: Paso 3. Construir la geoURI compleja.
                 // Formato: "geo:0,0?q=lat,lng(label)&z=zoom"
                 // IMPORTANTE: Recuerda codificar la etiqueta (label) con URLEncoder para caracteres especiales.
-                // 1. Codificamos el nombre para que sea seguro (los espacios se convierten en %20, etc.)
-                // IMPORTANTE: Necesitarás importar java.net.URLEncoder
-                val encodedLabel = URLEncoder.encode(mapLabel, "UTF-8")
 
-                // 2. Construimos la URI compleja concatenando las variables
-                val geoUri = "geo:0,0?q=$latitude,$longitude($encodedLabel)&z=$mapZoom"
-
-                // 3. Lanzamos
-                uriHandler.openUri(geoUri)
             }
 
 
@@ -214,14 +173,6 @@ fun IESSeveroOchoaIntents() {
                 // TODO: Paso 4. Construir la URI mailto.
                 // Formato: "mailto:email?subject=...&body=..."
                 // IMPORTANTE: Codificar asunto y cuerpo con URLEncoder.
-                // Codificamos asunto y cuerpo
-                val encodedSubject = URLEncoder.encode(emailSubject, "UTF-8")
-                val encodedBody = URLEncoder.encode(emailBody, "UTF-8")
-
-                // Construimos la URI
-                val mailtoUri = "mailto:$emailRecipient?subject=$encodedSubject&body=$encodedBody"
-
-                uriHandler.openUri(mailtoUri)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -234,15 +185,6 @@ fun IESSeveroOchoaIntents() {
             ) {
                 // TODO: Paso 5 (Botón). Lanzar el permissionLauncher solicitando:
                 // Manifest.permission.ACCESS_FINE_LOCATION y ACCESS_COARSE_LOCATION
-
-                // En el onClick del botón:
-                permissionLauncher.launch( // <--- ¡A trabajar!
-                    arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    )
-                )
-
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -260,41 +202,9 @@ fun IESSeveroOchoaIntents() {
                 )
             }
 
-
-            //CALENDARIO
-            ActionButton(
-                text = "Añadir cita al calendario",
-                icon = Icons.Filled.Event,
-                color = buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-            ) {
-                addCalendarEvent(context)
-            }
-
-
         }
     }
 }
-
-fun addCalendarEvent(context: Context) {
-    // Insertar un evento en el calendario
-    val intent = Intent(Intent.ACTION_INSERT).apply {
-        data = android.provider.CalendarContract.Events.CONTENT_URI
-
-        putExtra(android.provider.CalendarContract.Events.TITLE, "Visita al IES Severo Ochoa")
-        putExtra(android.provider.CalendarContract.Events.EVENT_LOCATION, "Elche")
-        putExtra(android.provider.CalendarContract.Events.DESCRIPTION, "Reunión informativa")
-
-        // Ahora mismo + 1 hora
-        val startTime = System.currentTimeMillis() + 60 * 60 * 1000
-        val endTime = startTime + 60 * 60 * 1000
-
-        putExtra(android.provider.CalendarContract.EXTRA_EVENT_BEGIN_TIME, startTime)
-        putExtra(android.provider.CalendarContract.EXTRA_EVENT_END_TIME, endTime)
-    }
-
-    context.startActivity(intent)
-}
-
 
 fun sendWhatsAppMessage(context: Context, phoneNumber: String, message: String) {
     // TODO: Paso 6. Implementar lógica de WhatsApp
@@ -304,32 +214,6 @@ fun sendWhatsAppMessage(context: Context, phoneNumber: String, message: String) 
     // 4. Crear Intent ACTION_VIEW.
     // 5. Configurar package "com.whatsapp" (opcional, para forzar app).
     // 6. Lanzar activity dentro de un try-catch para evitar cierres si no está instalado.
-    // 1. Limpieza: WhatsApp quiere el número sin '+' ni espacios (ej: 34666...)
-    val cleanNumber = phoneNumber.replace("+", "").replace(" ", "")
-
-    // 2. Codificamos el mensaje
-    val encodedMessage = URLEncoder.encode(message, "UTF-8")
-
-    // 3. Creamos la URI "mágica" de WhatsApp
-    val uri = "https://wa.me/$cleanNumber?text=$encodedMessage"
-
-    // 4. Creamos un Intent nativo ACTION_VIEW
-    val intent = Intent(Intent.ACTION_VIEW)
-    intent.data = android.net.Uri.parse(uri)
-
-    /* TRUCO PRO: Si descomentas la siguiente línea, obligas a abrir WhatsApp oficial.
-       Si la dejas comentada, Android preguntará al usuario (útil si usa WhatsApp Business) */
-    // intent.setPackage("com.whatsapp")
-
-    // 5. INTENTAMOS abrir la actividad
-    try {
-        context.startActivity(intent)
-    } catch (e: ActivityNotFoundException) {
-        // Si entramos aquí, es que no tiene WhatsApp instalado
-        Toast.makeText(context, "WhatsApp no está instalado", Toast.LENGTH_SHORT).show()
-    }
-
-
 }
 
 
@@ -357,41 +241,13 @@ fun ActionButton(
 
 // NUEVA FUNCIÓN para obtener ubicación y calcular distancia
 private fun calculateAndShowDistance(context: Context, instituteLat: String, instituteLon: String) {
-    // 1. Obtenemos el cliente de ubicación de Google
-    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+    // TODO: Paso 7. Lógica de Geolocalización (API LocationServices)
 
-    // 2. IMPORTANTE: Aunque el usuario haya dicho "Sí" antes,
-    // Android exige por seguridad volver a verificar el permiso antes de llamar a la API.
-    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-
-        // 3. Pedimos la ubicación ACTUAL
-        // PRIORITY_HIGH_ACCURACY: Usa GPS (gasta más batería, pero es exacto)
-        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, CancellationTokenSource().token)
-            .addOnSuccessListener { userLocation: Location? ->
-                if (userLocation != null) {
-                    // A. Creamos la ubicación del Instituto
-                    val instituteLocation = Location("provider").apply {
-                        latitude = instituteLat.toDouble()
-                        longitude = instituteLon.toDouble()
-                    }
-
-                    // B. Calculamos la distancia (magia matemática de Android)
-                    val distanceInMeters = userLocation.distanceTo(instituteLocation)
-                    val distanceInKm = distanceInMeters / 1000f
-
-                    // C. Mostramos resultado
-                    val msg = String.format(Locale.getDefault(), "Estás a %.2f km del instituto", distanceInKm)
-                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                } else {
-                    Toast.makeText(context, "No se pudo obtener la ubicación (GPS desactivado?)", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .addOnFailureListener {
-                Toast.makeText(context, "Error al obtener ubicación", Toast.LENGTH_SHORT).show()
-            }
-    }
+    // 1. Obtener FusedLocationProviderClient (Necesitarás añadir dependencia en Gradle y el import).
+    // 2. Verificar permiso selfPermission (aunque ya lo hayamos pedido, es buena práctica).
+    // 3. Obtener ubicación actual (getCurrentLocation) con prioridad alta.
+    // 4. En el listener de éxito: crear objeto Location del instituto, calcular distancia (distanceTo) y mostrar Toast.
 }
-
 
 @Preview(showBackground = true)
 @Composable
